@@ -1,0 +1,56 @@
+services:
+  site:
+    image: marinoni-app:latest
+    container_name: site
+    build:
+      context: .
+      dockerfile: ./site/Dockerfile
+    ports:
+      - "8090:80"
+    environment:
+      - MYSQL_DATABASE=${MYSQL_DATABASE:-rest_api}
+      - MYSQL_USER=${MYSQL_USER:-my_user}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD:-my_password}
+      - DB_HOST=${DB_HOST:-mysql}
+      - DB_CHARSET=${DB_CHARSET:-utf8}
+      - DB_NAME=${DB_NAME:-rest_api}
+    networks:
+      - marinoni-net
+
+  mysql:
+    image: mysql:8.0
+    container_name: mysql
+    build:
+      context: ./
+      dockerfile: ./mysql/Dockerfile
+    ports:
+      - "3306:3306"
+    environment:
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD:-root_password}
+      - MYSQL_DATABASE=${MYSQL_DATABASE:-rest_api}
+      - MYSQL_USER=${MYSQL_USER:-my_user}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD:-my_password}
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - marinoni-net
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: phpmyadmin
+    environment:
+      - PMA_HOST=mysql
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD:-root_password}
+    ports:
+      - "8081:80"
+    depends_on:
+      - mysql
+    networks:
+      - marinoni-net
+
+volumes:
+  mysql_data:
+
+networks:
+  marinoni-net:
+    driver: bridge
