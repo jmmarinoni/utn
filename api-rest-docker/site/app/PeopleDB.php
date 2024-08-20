@@ -1,20 +1,11 @@
 <?php 
 
+require_once 'conexion/DB_Connect.php';
 
 class PeopleDB {
     
-    protected $mysqli;
+    protected $conn;
 
-    const LOCALHOST = 'mysql';
-    const USER = 'root';
-    const PASSWORD = 'root_password';
-    const DATABASE = 'rest_api';
-
-   // define("DB_HOST", getenv('DB_HOST'));
-   // define("DB_USER", getenv('MYSQL_USER'));
-   // define("DB_PASSWORD", getenv('MYSQL_PASSWORD'));
-   // define("DB_DATABASE", getenv('DB_DATABASE'));
-    
     /**
      * Constructor de clase
      */
@@ -22,8 +13,8 @@ class PeopleDB {
        {           
             try{
                 //conexión a base de datos
-                $this->mysqli = new mysqli(self::LOCALHOST, self::USER, self::PASSWORD, self::DATABASE);
-               // $this->mysqli = new mysqli(DB_HOST, DB_USER, DB_PASSWORD, DB_DATABASE);
+                $this->conn = new DB_Connect();
+
               }catch (mysqli_sql_exception $e)
                    {
                     //Si no se puede realizar la conexión
@@ -39,13 +30,13 @@ class PeopleDB {
      */
     public function getPeople($id=0)
        {      
-        $stmt = $this->mysqli->prepare("SELECT * FROM people WHERE id=? ; ");
+        $stmt = $this->conn->prepare("SELECT * FROM people WHERE id=? ; ");
         $stmt->bind_param('s', $id);
         $stmt->execute();
-        $result = $stmt->get_result();        
-        $peoples = $result->fetch_all(MYSQLI_ASSOC); 
+        $result = $stmt->get_result();
+        $peoples = $result->fetchAll(PDO::FETCH_ASSOC);
         $stmt->close();
-        return $peoples;              
+        return $peoples;
        }
 
 
@@ -56,14 +47,14 @@ class PeopleDB {
      * @return Array array con los registros obtenidos de la base de datos
      */
     public function getPeoples()
-        {        
-        $result = $this->mysqli->query('SELECT * FROM people');          
-        $peoples = $result->fetch_all(MYSQLI_ASSOC);          
-        $result->close();
-        return $peoples; 
+        {
+        $db = $this->conn->connect();
+        $sql = 'SELECT * FROM people';
+        $statement = $db->query($sql);
+        $peoples = $statement->fetchAll(PDO::FETCH_ASSOC);
+        return $peoples;
+        PDO2::closeInstance();
         }
-
-
 
     
     /**
@@ -71,16 +62,21 @@ class PeopleDB {
      * @param String $name nombre completo de persona
      * @return bool TRUE|FALSE 
      */
-    public function insert($name='')
-       {
-        $stmt = $this->mysqli->prepare("INSERT INTO people(name) VALUES (?); ");
-        $stmt->bind_param('s', $name);
-        $r = $stmt->execute(); 
-        $stmt->close();
-        return $r;        
+
+   public function insert($name = '')
+   {
+       try {
+           $db = $this->conn->connect();
+           $sql = 'INSERT INTO people(name) VALUES(:name)';
+           $statement = $db->prepare($sql);
+           $statement->execute([':name' => $name]);
+           
+       } catch (PDOException $e) {
+           echo 'Error: ' . $e->getMessage();
+           return false;
        }
-
-
+   }
+   
 
     
     /**
@@ -90,11 +86,18 @@ class PeopleDB {
      */
     public function delete($id=0)
        {
-        $stmt = $this->mysqli->prepare("DELETE FROM people WHERE id = ? ; ");
-        $stmt->bind_param('s', $id);
-        $r = $stmt->execute(); 
-        $stmt->close();
-        return $r;
+        try{ 
+        $db = $this->conn->connect();
+        $sql = 'DELETE FROM people WHERE id = :id ;';
+        $statement = $db->prepare($sql);
+        $statement->bindParam(':id', $id, PDO::PARAM_INT);
+        if ($statement->execute()) {
+          echo 'Usuario id ' . $id . ' fue eliminado correctamente.';
+        }
+      } catch (PDOException $e) {
+        echo 'Error: ' . $e->getMessage();
+        return false;
+    }
        }
     
 
@@ -107,7 +110,7 @@ class PeopleDB {
        {
             if($this->checkID($id))
               {
-                $stmt = $this->mysqli->prepare("UPDATE people SET name=? WHERE id = ? ; ");
+                $stmt = $this->conn->prepare("UPDATE people SET name=? WHERE id = ? ; ");
                 $stmt->bind_param('ss', $newName,$id);
                 $r = $stmt->execute(); 
                 $stmt->close();
@@ -127,7 +130,7 @@ class PeopleDB {
      */
     public function checkID($id)
      {
-            $stmt = $this->mysqli->prepare("SELECT * FROM people WHERE ID=?");
+            $stmt = $this->conn->prepare("SELECT * FROM people WHERE ID=?");
             $stmt->bind_param("s", $id);
             if($stmt->execute())
               {
@@ -144,7 +147,7 @@ class PeopleDB {
 
          public function getName()
         {        
-        $result = $this->mysqli->query('SELECT name FROM people');          
+        $result = $this->conn->query('SELECT name FROM people');          
         $names = $result->fetch_all(MYSQLI_ASSOC);          
         $result->close();
         return $names; 
