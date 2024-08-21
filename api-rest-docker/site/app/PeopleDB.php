@@ -136,7 +136,7 @@ class PeopleDB {
               {
                 $stmt->store_result();    
                 if ($stmt->num_rows == 1)
-                    {                
+                    {
                     return true;
                     }
               }  
@@ -147,8 +147,8 @@ class PeopleDB {
 
          public function getName()
         {        
-        $result = $this->conn->query('SELECT name FROM people');          
-        $names = $result->fetch_all(MYSQLI_ASSOC);          
+        $result = $this->conn->query('SELECT name FROM people');
+        $names = $result->fetch_all(MYSQLI_ASSOC);
         $result->close();
         return $names; 
         }

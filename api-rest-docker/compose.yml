@@ -3,7 +3,7 @@ services:
     image: marinoni-app:latest
     container_name: site
     build:
-      context: .
+      context: ./
       dockerfile: ./site/Dockerfile
     ports:
       - "8090:80"
@@ -24,7 +24,7 @@ services:
       context: ./
       dockerfile: ./mysql/Dockerfile
     ports:
-      - "3306:3306"
+      - "8091:3306"
     environment:
       - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD:-root_password}
       - MYSQL_DATABASE=${MYSQL_DATABASE:-rest_api}
@@ -42,7 +42,7 @@ services:
       - PMA_HOST=mysql
       - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD:-root_password}
     ports:
-      - "8081:80"
+      - "8092:80"
     depends_on:
       - mysql
     networks:
