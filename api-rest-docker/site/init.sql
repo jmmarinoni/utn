@@ -1,3 +1,9 @@
+-- Crear la base de datos rest_api
+CREATE DATABASE IF NOT EXISTS rest_api;
+
+-- Usar la base de datos rest_api
+USE rest_api;
+
 -- phpMyAdmin SQL Dump
 -- version 4.2.11
 -- http://www.phpmyadmin.net
@@ -16,10 +22,6 @@ SET time_zone = "+00:00";
 /*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
 /*!40101 SET NAMES utf8 */;
 
---
--- Base de datos: `rest_api`
---
-
 -- --------------------------------------------------------
 
 --
@@ -27,7 +29,7 @@ SET time_zone = "+00:00";
 --
 
 CREATE TABLE IF NOT EXISTS `people` (
-`id` int(10) NOT NULL,
+  `id` int(10) NOT NULL,
   `name` varchar(32) COLLATE utf8_unicode_ci NOT NULL
 ) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
@@ -35,7 +37,7 @@ CREATE TABLE IF NOT EXISTS `people` (
 -- Volcado de datos para la tabla `people`
 --
 
-INSERT INTO `people` (`id`, `name`) VALUES
+INSERT IGNORE INTO `people` (`id`, `name`) VALUES
 (1, 'Juan Marinoni'),
 (2, 'Marcos Tonina');
 
@@ -43,9 +45,6 @@ INSERT INTO `people` (`id`, `name`) VALUES
 -- Índices para tablas volcadas
 --
 
---
--- Indices de la tabla `people`
---
 ALTER TABLE `people`
  ADD PRIMARY KEY (`id`);
 
@@ -53,11 +52,9 @@ ALTER TABLE `people`
 -- AUTO_INCREMENT de las tablas volcadas
 --
 
---
--- AUTO_INCREMENT de la tabla `people`
---
 ALTER TABLE `people`
 MODIFY `id` int(10) NOT NULL AUTO_INCREMENT,AUTO_INCREMENT=4;
+
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;

@@ -20,9 +20,6 @@ services:
   mysql:
     image: mysql:8.0
     container_name: mysql
-    build:
-      context: ./
-      dockerfile: ./mysql/Dockerfile
     ports:
       - "8091:3306"
     environment:
@@ -31,7 +28,7 @@ services:
       - MYSQL_USER=${MYSQL_USER:-my_user}
       - MYSQL_PASSWORD=${MYSQL_PASSWORD:-my_password}
     volumes:
-      - mysql_data:/var/lib/mysql
+      - db_datos:/var/lib/mysql
     networks:
       - marinoni-net
 
@@ -49,7 +46,7 @@ services:
       - marinoni-net
 
 volumes:
-  mysql_data:
+  db_datos:
 
 networks:
   marinoni-net:
