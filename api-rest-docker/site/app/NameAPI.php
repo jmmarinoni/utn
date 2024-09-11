@@ -53,7 +53,7 @@ class NameAPI
                      echo json_encode($response,JSON_PRETTY_PRINT);
                      }
              }else{
-                   $this->response(400);
+                   $this->response(200);
                   }
      }
 }//end class
