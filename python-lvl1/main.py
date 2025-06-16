@@ -8,7 +8,8 @@ cursor.execute("""
     CREATE TABLE IF NOT EXISTS articulos (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         nombre TEXT NOT NULL,
-        precio REAL NOT NULL
+        precio REAL NOT NULL,
+        cantidad INTEGER NOT NULL
     )
 """)
 conn.commit()
@@ -29,20 +30,24 @@ def seleccionar_item(event):
     entry_id.delete(0, tk.END)
     entry_nombre.delete(0, tk.END)
     entry_precio.delete(0, tk.END)
+    entry_cantidad.delete(0, tk.END)
     entry_id.insert(0, valores[0])
     entry_id.config(state='readonly')
     entry_nombre.insert(0, valores[1])
     entry_precio.insert(0, valores[2])
+    entry_cantidad.insert(0, valores[3])
 
-def guardar_cambios(event=None):
+def modificar_articulo(event=None):
     try:
         id_item = int(entry_id.get())
         nombre = entry_nombre.get().strip()
         precio = float(entry_precio.get())
+        cantidad = int(entry_cantidad.get())
 
         if not nombre:
             messagebox.showwarning("Faltan datos", "El nombre no puede estar vacío.")
             return
+
         cursor.execute("""
             SELECT COUNT(*) FROM articulos
             WHERE LOWER(nombre) = LOWER(?) AND id != ?
@@ -51,18 +56,20 @@ def guardar_cambios(event=None):
             messagebox.showerror("Error", f"Ya existe un artículo llamado '{nombre}'.")
             return
 
-        cursor.execute("UPDATE articulos SET nombre = ?, precio = ? WHERE id = ?", (nombre, precio, id_item))
+        cursor.execute("UPDATE articulos SET nombre = ?, precio = ?, cantidad = ? WHERE id = ?",
+                       (nombre, precio, cantidad, id_item))
         conn.commit()
         cargar_datos()
     except ValueError:
-        messagebox.showerror("Error", "Verificá los datos (precio debe ser número).")
+        messagebox.showerror("Error", "Verificá los datos (precio y cantidad deben ser numéricos).")
 
 def agregar_articulo():
     nombre = entry_nombre.get().strip()
     precio = entry_precio.get()
+    cantidad = entry_cantidad.get()
 
-    if not nombre or not precio:
-        messagebox.showwarning("Faltan datos", "Completá nombre y precio.")
+    if not nombre or not precio or not cantidad:
+        messagebox.showwarning("Faltan datos", "Completá nombre, precio y cantidad.")
         return
 
     cursor.execute("SELECT COUNT(*) FROM articulos WHERE LOWER(nombre) = LOWER(?)", (nombre,))
@@ -71,13 +78,15 @@ def agregar_articulo():
         return
 
     try:
-        cursor.execute("INSERT INTO articulos (nombre, precio) VALUES (?, ?)", (nombre, float(precio)))
+        cursor.execute("INSERT INTO articulos (nombre, precio, cantidad) VALUES (?, ?, ?)",
+                       (nombre, float(precio), int(cantidad)))
         conn.commit()
         cargar_datos()
         entry_nombre.delete(0, tk.END)
         entry_precio.delete(0, tk.END)
+        entry_cantidad.delete(0, tk.END)
     except ValueError:
-        messagebox.showerror("Error", "Precio debe ser numérico.")
+        messagebox.showerror("Error", "Verificá los datos (precio y cantidad deben ser numéricos).")
 
 def eliminar_articulo():
     try:
@@ -90,12 +99,13 @@ def eliminar_articulo():
         entry_id.config(state='readonly')
         entry_nombre.delete(0, tk.END)
         entry_precio.delete(0, tk.END)
+        entry_cantidad.delete(0, tk.END)
     except ValueError:
         messagebox.showerror("Error", "Seleccioná un artículo válido.")
 
 ventana = tk.Tk()
 ventana.title("ABM Corralón")
-ventana.geometry("550x550")
+ventana.geometry("600x600")
 
 frame_form = tk.Frame(ventana)
 frame_form.pack(pady=10)
@@ -112,23 +122,29 @@ tk.Label(frame_form, text="Precio").grid(row=2, column=0, padx=5)
 entry_precio = tk.Entry(frame_form, width=30)
 entry_precio.grid(row=2, column=1, padx=5)
 
+tk.Label(frame_form, text="Cantidad").grid(row=3, column=0, padx=5)
+entry_cantidad = tk.Entry(frame_form, width=30)
+entry_cantidad.grid(row=3, column=1, padx=5)
+
 frame_btns = tk.Frame(ventana)
 frame_btns.pack(pady=5)
 
 tk.Button(frame_btns, text="Agregar", command=agregar_articulo).grid(row=0, column=0, padx=10)
 tk.Button(frame_btns, text="Eliminar", command=eliminar_articulo).grid(row=0, column=1, padx=10)
+tk.Button(frame_btns, text="Modificar", command=modificar_articulo).grid(row=0, column=2, padx=10)
 
-columns = ("ID", "Nombre", "Precio")
+columns = ("ID", "Nombre", "Precio", "Cantidad")
 tree = ttk.Treeview(ventana, columns=columns, show="headings", height=15)
 for col in columns:
     tree.heading(col, text=col)
-    tree.column(col, anchor='center', width=150)
+    tree.column(col, anchor='center', width=130)
 
 tree.pack(pady=10, expand=True, fill='both')
 
 tree.bind("<<TreeviewSelect>>", seleccionar_item)
-entry_nombre.bind("<Return>", guardar_cambios)
-entry_precio.bind("<Return>", guardar_cambios)
+entry_nombre.bind("<Return>", modificar_articulo)
+entry_precio.bind("<Return>", modificar_articulo)
+entry_cantidad.bind("<Return>", modificar_articulo)
 
 cargar_datos()
 ventana.mainloop()
