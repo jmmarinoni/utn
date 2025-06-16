@@ -1,6 +1,7 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
 import sqlite3
+import re
 
 conn = sqlite3.connect("corralon.db")
 cursor = conn.cursor()
@@ -38,30 +39,39 @@ def seleccionar_item(event):
     entry_cantidad.insert(0, valores[3])
 
 def modificar_articulo(event=None):
-    try:
-        id_item = int(entry_id.get())
-        nombre = entry_nombre.get().strip()
-        precio = float(entry_precio.get())
-        cantidad = int(entry_cantidad.get())
+    id_item = entry_id.get()
+    nombre = entry_nombre.get().strip()
+    precio = entry_precio.get()
+    cantidad = entry_cantidad.get()
 
-        if not nombre:
-            messagebox.showwarning("Faltan datos", "El nombre no puede estar vacío.")
-            return
+    if not id_item or not nombre or not precio or not cantidad:
+        messagebox.showwarning("Faltan datos", "Completá todos los campos.")
+        return
 
-        cursor.execute("""
-            SELECT COUNT(*) FROM articulos
-            WHERE LOWER(nombre) = LOWER(?) AND id != ?
-        """, (nombre, id_item))
-        if cursor.fetchone()[0] > 0:
-            messagebox.showerror("Error", f"Ya existe un artículo llamado '{nombre}'.")
-            return
+    if not re.match(r"^\d+(\.\d{1,2})?$", precio):
+        messagebox.showerror("Error", "El precio debe ser un número válido.")
+        return
 
-        cursor.execute("UPDATE articulos SET nombre = ?, precio = ?, cantidad = ? WHERE id = ?",
-                       (nombre, precio, cantidad, id_item))
-        conn.commit()
-        cargar_datos()
-    except ValueError:
-        messagebox.showerror("Error", "Verificá los datos (precio y cantidad deben ser numéricos).")
+    if not re.match(r"^\d+$", cantidad):
+        messagebox.showerror("Error", "La cantidad debe ser un número entero.")
+        return
+
+    id_item = int(id_item)
+    precio = float(precio)
+    cantidad = int(cantidad)
+
+    cursor.execute("""
+        SELECT COUNT(*) FROM articulos
+        WHERE LOWER(nombre) = LOWER(?) AND id != ?
+    """, (nombre, id_item))
+    if cursor.fetchone()[0] > 0:
+        messagebox.showerror("Error", f"Ya existe un artículo llamado '{nombre}'.")
+        return
+
+    cursor.execute("UPDATE articulos SET nombre = ?, precio = ?, cantidad = ? WHERE id = ?",
+                   (nombre, precio, cantidad, id_item))
+    conn.commit()
+    cargar_datos()
 
 def agregar_articulo():
     nombre = entry_nombre.get().strip()
@@ -72,21 +82,29 @@ def agregar_articulo():
         messagebox.showwarning("Faltan datos", "Completá nombre, precio y cantidad.")
         return
 
+    if not re.match(r"^\d+(\.\d{1,2})?$", precio):
+        messagebox.showerror("Error", "El precio debe ser un número válido.")
+        return
+
+    if not re.match(r"^\d+$", cantidad):
+        messagebox.showerror("Error", "La cantidad debe ser un número entero.")
+        return
+
     cursor.execute("SELECT COUNT(*) FROM articulos WHERE LOWER(nombre) = LOWER(?)", (nombre,))
     if cursor.fetchone()[0] > 0:
         messagebox.showerror("Error", f"El artículo '{nombre}' ya existe.")
         return
 
-    try:
-        cursor.execute("INSERT INTO articulos (nombre, precio, cantidad) VALUES (?, ?, ?)",
-                       (nombre, float(precio), int(cantidad)))
-        conn.commit()
-        cargar_datos()
-        entry_nombre.delete(0, tk.END)
-        entry_precio.delete(0, tk.END)
-        entry_cantidad.delete(0, tk.END)
-    except ValueError:
-        messagebox.showerror("Error", "Verificá los datos (precio y cantidad deben ser numéricos).")
+    precio = float(precio)
+    cantidad = int(cantidad)
+
+    cursor.execute("INSERT INTO articulos (nombre, precio, cantidad) VALUES (?, ?, ?)",
+                   (nombre, precio, cantidad))
+    conn.commit()
+    cargar_datos()
+    entry_nombre.delete(0, tk.END)
+    entry_precio.delete(0, tk.END)
+    entry_cantidad.delete(0, tk.END)
 
 def eliminar_articulo():
     try:
