@@ -105,21 +105,31 @@ def agregar_articulo():
     entry_nombre.delete(0, tk.END)
     entry_precio.delete(0, tk.END)
     entry_cantidad.delete(0, tk.END)
+    messagebox.showinfo("Artículo agregado", f"El producto '{nombre}' fue dado de alta con éxito.")
 
 def eliminar_articulo():
-    try:
-        id_item = int(entry_id.get())
-        cursor.execute("DELETE FROM articulos WHERE id = ?", (id_item,))
-        conn.commit()
-        cargar_datos()
-        entry_id.config(state='normal')
-        entry_id.delete(0, tk.END)
-        entry_id.config(state='readonly')
-        entry_nombre.delete(0, tk.END)
-        entry_precio.delete(0, tk.END)
-        entry_cantidad.delete(0, tk.END)
-    except ValueError:
+    id_item = entry_id.get()
+    nombre = entry_nombre.get().strip()
+
+    if not id_item:
         messagebox.showerror("Error", "Seleccioná un artículo válido.")
+        return
+
+    confirmar = messagebox.askyesno("Confirmar eliminación", f"¿Estás seguro que querés borrar el artículo '{nombre}'?")
+    if not confirmar:
+        return
+
+    id_item = int(id_item)
+    cursor.execute("DELETE FROM articulos WHERE id = ?", (id_item,))
+    conn.commit()
+    cargar_datos()
+    entry_id.config(state='normal')
+    entry_id.delete(0, tk.END)
+    entry_id.config(state='readonly')
+    entry_nombre.delete(0, tk.END)
+    entry_precio.delete(0, tk.END)
+    entry_cantidad.delete(0, tk.END)
+    messagebox.showinfo("Artículo eliminado", f"El producto '{nombre}' fue eliminado correctamente.")
 
 ventana = tk.Tk()
 ventana.title("ABM Corralón")
